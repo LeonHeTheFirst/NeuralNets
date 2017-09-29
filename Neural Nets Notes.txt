@@ -1,0 +1,35 @@
+Neural Nets Notes:
+
+Inner product: dot product
+Outer product: cross product?
+    (a_1, a_2, a_3) * (b_1, b_2, b_3) = ((a1b1, a1b2, a1b3), (a2b1,a2b2...), ())
+
+Mat Mult: <4X10> * <10X2> => <4X2>
+
+Linear Independence: set of non-zero vectors is linearly independent:  Sigma(a_i*v_i) = 0 iff a_i = 0 for all i
+    Pretty much means none of them are in a line
+Chain rule is important
+
+Gradient vector is vector of all partial dericatives
+
+Directional Derivative: Gradient vector (dot) D where D is unit directional vector
+
+First order necessary conditions(TFAE):
+    Gradient vector is 0 for point to be local min or max
+    For all directional vectors, directional derivative is zero
+
+Convexity:
+    ????? See slides
+
+Second order sufficiency conditions
+    1. All second derivatives are positive
+    2. All points in tangent plane have function values <= objective function value
+    3. Function is convex
+
+Review Metrics and Norms
+
+Mean Value Theorem:
+
+
+error = output - desired
+delta_value = -error * (1-output)

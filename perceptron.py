@@ -31,7 +31,7 @@ class Perceptron():
 
 	def update_weights(self, delta, inputs):
 		self.weights = [w+self.eta*delta*i for i,w in zip(inputs, self.weights)]
-		self.bias += 0 # self.eta * delta
+		# self.bias += self.eta * delta
 
 	def train(self, inputs, desired):
 		y = self.output(inputs)
@@ -42,13 +42,24 @@ class Perceptron():
 
 class PerceptronLayer():
 
-	def __init__(self,node_count):
-		self.nodes = [Perceptron()]
+	def __init__(self,perceptron_list, output_flag):
+		self.nodes = perceptron_list
+		self.output_flag = output_flag
+
+	def error_vector(self, desired_output, output):
+		if output_flag:
+			return desired_output - output
+
+	def output_vector(self, input_vector):
+		return [node.output(input_vector) for node in nodes]
+
+	def output_deltas(self, desired):
+		pass
 
 class PerceptronNet():
 
-	def __init__(self,layer_count):
-		pass
+	def __init__(self,layer_list):
+		self.layers = layer_list
 
 if __name__ == '__main__':
 	lonely_bob = Perceptron(weights=[-0.3, 0.6], input_count=2, eta=0.1, bias=0.2)
