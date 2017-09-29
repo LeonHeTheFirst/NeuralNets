@@ -1,4 +1,5 @@
-import random, math, logging, numpy
+import random, math, logging
+import numpy as np
 
 # Logging Stuff
 loglevel = logging.DEBUG
@@ -27,18 +28,18 @@ class Perceptron():
 		v = 1/(1+math.exp(-1 * A))
 		return 1/(1+math.exp(-1 * (A + self.bias)))
 
-	def output(self, inputs):
-		return self.activation_function(self.activity_function(inputs))
+	def output(self, input_vector):
+		return self.activation_function(self.activity_function(input_vector))
 
-	def update_weights(self, delta, inputs):
-		self.weights = [w+self.eta*delta*i for i,w in zip(inputs, self.weights)]
+	def update_weights(self, delta, input_vector):
+		self.weights = [w+self.eta*delta*i for i,w in zip(input_vector, self.weights)]
 		# self.bias += self.eta * delta
 
-	def train(self, inputs, desired):
-		y = self.output(inputs)
+	def train(self, input_vector, desired):
+		y = self.output(input_vector)
 		delta = y*(1 - y)*(desired - y)
 		# logging.debug('delta: ' + str(delta))
-		self.update_weights(delta, inputs)
+		self.update_weights(delta, input_vector)
 		return y
 
 class PerceptronLayer():
@@ -49,21 +50,24 @@ class PerceptronLayer():
 
 	def error_vector(self, desired_output, output):
 		if output_flag:
-			return desired_output - output
+			return np.subtract(desired_output, output)
 
 	def output_vector(self, input_vector):
 		return [node.output(input_vector) for node in nodes]
 
-	def output_deltas(self, desired):
-		pass
+	def output_deltas(self, desired_vector):
+		return [y*(1 - y)*(desired - y) for y,desired in zip(output_vector, desired_vector)]
 
 class PerceptronNet():
 
 	def __init__(self,layer_list):
-		self.layers = layer_list
+		self.layers = [layer for layer in layer_list]
+		for i in range(0, len(self.layers)):
+			self.layers[i].output_flag = False
+		self.layers[-1].output_flag = True
 
 if __name__ == '__main__':
-	lonely_bob = Perceptron(weights=[-0.3, 0.6], input_count=2, eta=0.1, bias=0.2)
+	lonely_bob = Perceptron(weights=[-0.3, 0.6], input_count=2, eta=1, bias=0.2)
 	inputs1 = [1,0]
 	# inputs2 = [0.2,0.3]
 	# x1 = 0.8
