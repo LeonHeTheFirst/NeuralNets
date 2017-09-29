@@ -8,6 +8,7 @@ logger = logging.getLogger(__name__)
 
 class Perceptron():
 
+	# TODO: Set seed for random generation
 	def __init__(self, input_count, weights=None, eta=1, bias=0):
 		if weights == None:
 			self.weights = [random.uniform(-1, 1) for i in range(0,input_count)]
