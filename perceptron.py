@@ -14,7 +14,7 @@ class Perceptron():
 		if weights == None:
 			self.weights = [random.uniform(-1, 1) for i in range(0,input_count)]
 		else:
-			self.weights = [w for w in weights]
+			self.weights = list(weights)
 		self.bias = bias
 		self.eta = eta
 
@@ -45,7 +45,7 @@ class Perceptron():
 class PerceptronLayer():
 
 	def __init__(self,perceptron_list, output_flag):
-		self.nodes = perceptron_list
+		self.nodes = list(perceptron_list)
 		self.output_flag = output_flag
 
 	def error_vector(self, desired_output, output):
@@ -61,7 +61,7 @@ class PerceptronLayer():
 class PerceptronNet():
 
 	def __init__(self,layer_list):
-		self.layers = [layer for layer in layer_list]
+		self.layers = list(layer_list)
 		for i in range(0, len(self.layers)):
 			self.layers[i].output_flag = False
 		self.layers[-1].output_flag = True
