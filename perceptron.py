@@ -61,7 +61,7 @@ class PerceptronLayer():
 			for x in range(node_count):
 				self.nodes.append(Perceptron(input_count=input_count, eta=eta))
 		else:
-			raise Exception('Incorrect arguments to PerceptronLayer')
+			logger.error('Incorrect arguments to PerceptronLayer')
 		self.output_flag = output_flag
 
 	def node_count(self):
@@ -89,15 +89,20 @@ class PerceptronLayer():
 															 weights_vectors[i]))
 		return delta_vector
 
-	# The vector returned by this function will be of form [[w_11, w_12, w_13], [w_21, w_22, w_23]]
-	# and not of the form [[w_11, w_21], [w_12, w_22], [w_13, w_23]]
+	# The vector returned by this function will be of form [[w_11, w_21], [w_12, w_22], [w_13, w_23]]
+	# and not of the form [[w_11, w_12, w_13], [w_21, w_22, w_23]]
 	def get_weights_vector(self):
 		weights_vector = []
 		# First get the list of lists in the opposite format
 		for node in self.nodes:
 			weights_vector.append(node.weights)
-		# Then transpose to the format we want
-		weights_vector = list(map(list, zip(*weights_vector)))
+		return weights_vector
+
+	# The vector returned by this function will be of form [[w_11, w_12, w_13], [w_21, w_22, w_23]]
+	# and not of the form [[w_11, w_21], [w_12, w_22], [w_13, w_23]]
+	def get_weights_vector_trasnposed(self):
+		# Transpose get_weights_vector() to the format we want
+		weights_vector = list(map(list, zip(*self.get_weights_vector())))
 		return weights_vector
 
 	def update_weights(self, delta_vector, input_vector):
@@ -129,6 +134,12 @@ class PerceptronNet():
 			next_input_vector = layer.output_vector(next_input_vector)
 		return next_input_vector
 
+	def error_vector(self, input_vector, desired_output_vector):
+		next_input_vector = input_vector
+		for layer in self.layers:
+			next_input_vector = layer.output_vector(next_input_vector)
+		return [(desired - output) for desired, output in zip(desired_output_vector, next_input_vector)]
+
 	def output_deltas(self, input_vector, desired_vector):
 		output_vector = self.output_vector(input_vector)
 		return [y*(1 - y)*(desired - y) for y,desired in zip(output_vector, desired_vector)]
@@ -145,7 +156,7 @@ class PerceptronNet():
 		for i in reversed(range(0, self.layer_count()-1)):
 			layer_deltas[i] = self.layers[i].calculate_deltas(input_vectors[i+1],
 															  layer_deltas[i+1],
-															  self.layers[i+1].get_weights_vector())
+															  self.layers[i+1].get_weights_vector_trasnposed())
 			logging.debug(layer_deltas[i])
 		# Lastly, update the weights at each layer
 		for i in range(0, self.layer_count()):
@@ -166,8 +177,16 @@ if __name__ == '__main__':
 	inputs2 = [-1,-1]
 	desired2 = [0.05]
 
+	# Method 1
+	for x in range(15):
+		test_net.train(inputs1, desired1)
+		test_net.train(inputs2, desired2)
+		test_net.output_vector(inputs1)
+	# Method 2
+	for x in range(15):
+		test_net.train(inputs1, desired1)
+	for x in range(15):
+		test_net.train(inputs2, desired2)
 	logging.info(test_net.output_vector(inputs1))
 	logging.info(test_net.output_deltas(inputs1, desired1))
-	for x in range(10):
-		test_net.train(inputs1, desired1)
 	logging.info(test_net.output_vector(inputs1))
