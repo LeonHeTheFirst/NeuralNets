@@ -29,7 +29,17 @@ class Perceptron():
 		return 1/(1+math.exp(-1 * (A + self.bias)))
 
 	def output(self, input_vector):
-		return self.activation_function(self.activity_function(input_vector))
+		activity = self.activity_function(input_vector)
+		logging.debug(activity)
+		activation = self.activation_function(activity)
+		logging.debug(activation)
+		return self.activation_function(activity)
+
+	def calculate_delta(self, output, delta_vector, weights):
+		sigma = 0
+		for delta, weight in zip(delta_vector, weights):
+			sigma += delta * weight
+		return (1 - output) * output * sigma
 
 	def update_weights(self, delta, input_vector):
 		self.weights = [w+self.eta*delta*i for i,w in zip(input_vector, self.weights)]
@@ -48,15 +58,52 @@ class PerceptronLayer():
 		self.nodes = list(perceptron_list)
 		self.output_flag = output_flag
 
+	def node_count(self):
+		return len(self.nodes)
+
 	def error_vector(self, desired_output, output):
-		if output_flag:
+		if self.output_flag:
 			return np.subtract(desired_output, output)
 
-	def output_vector(self, input_vector):
-		return [node.output(input_vector) for node in nodes]
+	def input_vector_size():
+		return len(nodes[0].weights)
 
-	def output_deltas(self, desired_vector):
+	def output_vector(self, input_vector):
+		return [node.output(input_vector) for node in self.nodes]
+
+	def output_deltas(self, output_vector, desired_vector):
 		return [y*(1 - y)*(desired - y) for y,desired in zip(output_vector, desired_vector)]
+
+	def calculate_deltas(self, output_vector, next_delta_vector, weights_vectors):
+		delta_vector = []
+		logging.debug(' nodes size: ' + str(len(self.nodes)) +
+					  ' output_vector size: ' + str(len(output_vector)) +
+					  ' next_delta_vector size: ' + str(len(next_delta_vector)) +
+					  ' weights_vectors size: ' + str(len(weights_vectors)))
+		for i in range(0, len(output_vector)):
+			print('84: ', i)
+			delta_vector.append(self.nodes[i].calculate_delta(output_vector[i],
+															 next_delta_vector,
+															 weights_vectors[i]))
+		return delta_vector
+
+	# The vector returned by this function will be of form [[w_11, w_12, w_13], [w_21, w_22, w_23]]
+	# and not of the form [[w_11, w_21], [w_12, w_22], [w_13, w_23]]
+	def get_weights_vector(self):
+		weights_vector = []
+		# First get the list of lists in the opposite format
+		for node in self.nodes:
+			weights_vector.append(node.weights)
+		# Then transpose to the format we want
+		weights_vector = list(map(list, zip(*weights_vector)))
+		return weights_vector
+
+	def update_weights(self, delta_vector, input_vector):
+		logging.debug('Node vector size: ' + str(self.node_count()))
+		logging.debug('Delta vector size: ' + str(len(delta_vector)))
+		logging.debug('input_vector size: ' + str(len(input_vector)))
+		for i in range(0, self.node_count()):
+			self.nodes[i].update_weights(delta_vector[i], input_vector)
 
 class PerceptronNet():
 
@@ -66,24 +113,72 @@ class PerceptronNet():
 			self.layers[i].output_flag = False
 		self.layers[-1].output_flag = True
 
+	def layer_count(self):
+		return len(self.layers)
+
+	def input_vector_size():
+		return layer_list[0].input_vector_size()
+
+	def output_vector(self, input_vector):
+		next_input_vector = input_vector
+		for layer in self.layers:
+			next_input_vector = layer.output_vector(next_input_vector)
+		return next_input_vector
+
+	def output_deltas(self, input_vector, desired_vector):
+		output_vector = self.output_vector(input_vector)
+		return [y*(1 - y)*(desired - y) for y,desired in zip(output_vector, desired_vector)]
+
+	def train(self, input_vector, desired_output_vector):
+		# First find the input vectors at each level
+		input_vectors = [[] for i in range(0, self.layer_count())]
+		input_vectors[0] = input_vector
+		for i in range(1, self.layer_count()):
+			input_vectors[i] = self.layers[i-1].output_vector(input_vectors[i-1])
+		# Next find the delta vectors at each layer going backwards
+		layer_deltas = [[] for i in range(0, self.layer_count())]
+		layer_deltas[self.layer_count()-1] = self.output_deltas(input_vector, desired_output_vector)
+		for i in reversed(range(0, self.layer_count()-1)):
+			layer_deltas[i] = self.layers[i].calculate_deltas(input_vectors[i+1],
+															  layer_deltas[i+1],
+															  self.layers[i+1].get_weights_vector())
+			logging.debug(layer_deltas[i])
+		# Lastly, update the weights at each layer
+		for i in range(0, self.layer_count()):
+			print('i: ', i)
+			self.layers[i].update_weights(layer_deltas[i], input_vectors[i])
+
 if __name__ == '__main__':
-	lonely_bob = Perceptron(weights=[-0.3, 0.6], input_count=2, eta=1, bias=0.2)
-	inputs1 = [1,0]
+	first_layer = []
+	second_layer = []
+	first_layer.append(Perceptron(weights=[0.3, 0.3], input_count=2, eta=1, bias=0))
+	first_layer.append(Perceptron(weights=[0.3, 0.3], input_count=2, eta=1, bias=0))
+	second_layer.append(Perceptron(weights=[0.8, 0.8], input_count=2, eta=1, bias=0))
+	layer_list = []
+	layer_list.append(PerceptronLayer(perceptron_list=first_layer, output_flag=False))
+	layer_list.append(PerceptronLayer(perceptron_list=second_layer, output_flag=True))
+	test_net = PerceptronNet(layer_list)
+	inputs1 = [1,2]
+	desired1 = [0.7]
+
+	logging.debug(test_net.output_vector(inputs1))
+	logging.debug(test_net.output_deltas(inputs1, desired1))
+	test_net.train(inputs1, desired1)
+
 	# inputs2 = [0.2,0.3]
 	# x1 = 0.8
 	# x2 = 0.9
-	desired1 = 0.8
 	# output2 = 1
 	# for i in range(0,900000):
 	# 	y1 = lonely_bob.train(inputs1, output1)
 	# 	y2 = lonely_bob.train(inputs2, output2)
 	# 	if i % 1000 == 0:
-	# 		logging.debug('y= ' + str(y1) + ' w1 = ' + str(lonely_bob.weights[0]) + ' w2 = ' + str(lonely_bob.weights[1]))
-	# 		logging.debug('y= ' + str(y2) + ' w1 = ' + str(lonely_bob.weights[0]) + ' w2 = ' + str(lonely_bob.weights[1]))
+	# 		logging.debug('y= '+str(y1)+' w1 = '+str(lonely_bob.weights[0])+' w2 = '+str(lonely_bob.weights[1]))
+	# 		logging.debug('y= '+str(y2)+' w1 = '+str(lonely_bob.weights[0])+' w2 = '+str(lonely_bob.weights[1]))
 
-	for i in range(0,101):
-		y = lonely_bob.train(inputs1, desired1)
-		if i % 100 == 0:
-			logging.debug('y= ' + str(y) + ' w1 = ' + str(lonely_bob.weights[0]) + ' w2 = ' + str(lonely_bob.weights[1]))
-	logging.debug('output1: ' + str(lonely_bob.output(inputs1)))
+	# for i in range(0,101):
+	# 	y = test_net.train(inputs1, desired1)
+	# 	if i % 100 == 0:
+	# 		logging.debug('y= '+str(y)+' w1 = '+str(lonely_bob.weights[0])+' w2 = '+str(lonely_bob.weights[1]))
+	# logging.debug('output1: ' + str(lonely_bob.output(inputs1)))
 	# logging.debug('output2: ' + str(lonely_bob.output(inputs2)))
