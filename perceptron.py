@@ -2,7 +2,7 @@ import random, math, logging
 import numpy as np
 
 # Logging Stuff
-loglevel = logging.DEBUG
+loglevel = logging.INFO
 FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 logging.basicConfig(format=FORMAT, level=loglevel)
 logger = logging.getLogger(__name__)
@@ -30,9 +30,9 @@ class Perceptron():
 
 	def output(self, input_vector):
 		activity = self.activity_function(input_vector)
-		logging.debug(activity)
+		logging.debug('activity function output: ' + str(activity))
 		activation = self.activation_function(activity)
-		logging.debug(activation)
+		logging.debug('activation function output: ' + str(activation))
 		return self.activation_function(activity)
 
 	def calculate_delta(self, output, delta_vector, weights):
@@ -43,19 +43,25 @@ class Perceptron():
 
 	def update_weights(self, delta, input_vector):
 		self.weights = [w+self.eta*delta*i for i,w in zip(input_vector, self.weights)]
-		# self.bias += self.eta * delta
+		self.bias += self.eta * delta
 
-	def train(self, input_vector, desired):
-		y = self.output(input_vector)
-		delta = y*(1 - y)*(desired - y)
-		# logging.debug('delta: ' + str(delta))
-		self.update_weights(delta, input_vector)
-		return y
+	# def train(self, input_vector, desired):
+	# 	y = self.output(input_vector)
+	# 	delta = y*(1 - y)*(desired - y)
+	# 	self.update_weights(delta, input_vector)
+	# 	return y
 
 class PerceptronLayer():
 
-	def __init__(self,perceptron_list, output_flag):
-		self.nodes = list(perceptron_list)
+	def __init__(self, input_count=None, node_count=None, eta=1, perceptron_list=None, output_flag=False):
+		if perceptron_list is not None:
+			self.nodes = list(perceptron_list)
+		elif input_count is not None and node_count is not None:
+			self.nodes = []
+			for x in range(node_count):
+				self.nodes.append(Perceptron(input_count=input_count, eta=eta))
+		else:
+			raise Exception('Incorrect arguments to PerceptronLayer')
 		self.output_flag = output_flag
 
 	def node_count(self):
@@ -76,12 +82,8 @@ class PerceptronLayer():
 
 	def calculate_deltas(self, output_vector, next_delta_vector, weights_vectors):
 		delta_vector = []
-		logging.debug(' nodes size: ' + str(len(self.nodes)) +
-					  ' output_vector size: ' + str(len(output_vector)) +
-					  ' next_delta_vector size: ' + str(len(next_delta_vector)) +
-					  ' weights_vectors size: ' + str(len(weights_vectors)))
+		logging.debug('Calculating deltas, nodes size: ' + str(len(self.nodes)))
 		for i in range(0, len(output_vector)):
-			print('84: ', i)
 			delta_vector.append(self.nodes[i].calculate_delta(output_vector[i],
 															 next_delta_vector,
 															 weights_vectors[i]))
@@ -99,9 +101,7 @@ class PerceptronLayer():
 		return weights_vector
 
 	def update_weights(self, delta_vector, input_vector):
-		logging.debug('Node vector size: ' + str(self.node_count()))
-		logging.debug('Delta vector size: ' + str(len(delta_vector)))
-		logging.debug('input_vector size: ' + str(len(input_vector)))
+		logging.debug('Updating weights, node vector size: ' + str(self.node_count()))
 		for i in range(0, self.node_count()):
 			self.nodes[i].update_weights(delta_vector[i], input_vector)
 
@@ -112,6 +112,10 @@ class PerceptronNet():
 		for i in range(0, len(self.layers)):
 			self.layers[i].output_flag = False
 		self.layers[-1].output_flag = True
+
+	def save_network(self):
+		# TBD
+		pass
 
 	def layer_count(self):
 		return len(self.layers)
@@ -145,7 +149,6 @@ class PerceptronNet():
 			logging.debug(layer_deltas[i])
 		# Lastly, update the weights at each layer
 		for i in range(0, self.layer_count()):
-			print('i: ', i)
 			self.layers[i].update_weights(layer_deltas[i], input_vectors[i])
 
 if __name__ == '__main__':
@@ -158,27 +161,13 @@ if __name__ == '__main__':
 	layer_list.append(PerceptronLayer(perceptron_list=first_layer, output_flag=False))
 	layer_list.append(PerceptronLayer(perceptron_list=second_layer, output_flag=True))
 	test_net = PerceptronNet(layer_list)
-	inputs1 = [1,2]
-	desired1 = [0.7]
+	inputs1 = [1,1]
+	desired1 = [0.9]
+	inputs2 = [-1,-1]
+	desired2 = [0.05]
 
-	logging.debug(test_net.output_vector(inputs1))
-	logging.debug(test_net.output_deltas(inputs1, desired1))
-	test_net.train(inputs1, desired1)
-
-	# inputs2 = [0.2,0.3]
-	# x1 = 0.8
-	# x2 = 0.9
-	# output2 = 1
-	# for i in range(0,900000):
-	# 	y1 = lonely_bob.train(inputs1, output1)
-	# 	y2 = lonely_bob.train(inputs2, output2)
-	# 	if i % 1000 == 0:
-	# 		logging.debug('y= '+str(y1)+' w1 = '+str(lonely_bob.weights[0])+' w2 = '+str(lonely_bob.weights[1]))
-	# 		logging.debug('y= '+str(y2)+' w1 = '+str(lonely_bob.weights[0])+' w2 = '+str(lonely_bob.weights[1]))
-
-	# for i in range(0,101):
-	# 	y = test_net.train(inputs1, desired1)
-	# 	if i % 100 == 0:
-	# 		logging.debug('y= '+str(y)+' w1 = '+str(lonely_bob.weights[0])+' w2 = '+str(lonely_bob.weights[1]))
-	# logging.debug('output1: ' + str(lonely_bob.output(inputs1)))
-	# logging.debug('output2: ' + str(lonely_bob.output(inputs2)))
+	logging.info(test_net.output_vector(inputs1))
+	logging.info(test_net.output_deltas(inputs1, desired1))
+	for x in range(10):
+		test_net.train(inputs1, desired1)
+	logging.info(test_net.output_vector(inputs1))
