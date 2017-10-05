@@ -43,7 +43,7 @@ class Perceptron():
 
 	def update_weights(self, delta, input_vector):
 		self.weights = [w+self.eta*delta*i for i,w in zip(input_vector, self.weights)]
-		# self.bias += self.eta * delta
+		self.bias += self.eta * delta
 
 	def train(self, input_vector, desired):
 		y = self.output(input_vector)

@@ -1,4 +1,4 @@
-import perceptron
+from perceptron import Perceptron, PerceptronLayer, PerceptronNet
 
 def method1():
 	first_layer = []
