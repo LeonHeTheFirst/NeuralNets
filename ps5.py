@@ -1,4 +1,14 @@
 from perceptron import Perceptron, PerceptronLayer, PerceptronNet
+import random, math, logging
+import numpy as np
+
+# Logging Stuff
+loglevel = logging.DEBUG
+FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+logging.basicConfig(format=FORMAT, level=loglevel)
+logger = logging.getLogger(__name__)
+
+num_iterations = 15
 
 def method1():
 	first_layer = []
@@ -15,12 +25,16 @@ def method1():
 	inputs2 = [-1,-1]
 	desired2 = [0.05]
 
-	logging.debug(test_net.output_vector(inputs1))
-	logging.debug(test_net.output_deltas(inputs1, desired1))
+	logger.info(test_net.output_vector(inputs1))
+	logger.info(test_net.output_deltas(inputs1, desired1))
 
-	for i in range(15):
+	for i in range(num_iterations):
 		test_net.train(inputs1, desired1)
 		test_net.train(inputs2, desired2)
+
+	logger.info('Network Weights for Method 1: ' + str(test_net.get_all_weights()))
+	logger.info('Error for Method 1, first pair: ' + str(test_net.big_e(inputs1, desired1)))
+	logger.info('Error for Method 1, second pair: ' + str(test_net.big_e(inputs2, desired2)))
 
 
 def method2():
@@ -38,14 +52,17 @@ def method2():
 	inputs2 = [-1,-1]
 	desired2 = [0.05]
 
-	logging.debug(test_net.output_vector(inputs1))
-	logging.debug(test_net.output_deltas(inputs1, desired1))
+	logger.info(test_net.output_vector(inputs1))
+	logger.info(test_net.output_deltas(inputs1, desired1))
 
-	for i in range(15):
+	for i in range(num_iterations):
 		test_net.train(inputs1, desired1)
-	for i in range(15):
+	for i in range(num_iterations):
 		test_net.train(inputs2, desired2)
 
+	logger.info('Network Weights for Method 2: ' + str(test_net.get_all_weights()))
+	logger.info('Error for Method 2, first pair: ' + str(test_net.big_e(inputs1, desired1)))
+	logger.info('Error for Method 2, second pair: ' + str(test_net.big_e(inputs2, desired2)))
 
 if __name__ == '__main__':
 	method1()
