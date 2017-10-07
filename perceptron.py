@@ -100,7 +100,7 @@ class PerceptronLayer():
 
 	# The vector returned by this function will be of form [[w_11, w_12, w_13], [w_21, w_22, w_23]]
 	# and not of the form [[w_11, w_21], [w_12, w_22], [w_13, w_23]]
-	def get_weights_vector_trasnposed(self):
+	def get_weights_vector_transposed(self):
 		# Transpose get_weights_vector() to the format we want
 		weights_vector = list(map(list, zip(*self.get_weights_vector())))
 		return weights_vector
@@ -156,11 +156,30 @@ class PerceptronNet():
 		for i in reversed(range(0, self.layer_count()-1)):
 			layer_deltas[i] = self.layers[i].calculate_deltas(input_vectors[i+1],
 															  layer_deltas[i+1],
-															  self.layers[i+1].get_weights_vector_trasnposed())
+															  self.layers[i+1].get_weights_vector_transposed())
 			logging.debug(layer_deltas[i])
 		# Lastly, update the weights at each layer
 		for i in range(0, self.layer_count()):
 			self.layers[i].update_weights(layer_deltas[i], input_vectors[i])
+
+def test_network():
+	first_layer = []
+	second_layer = []
+	first_layer.append(Perceptron(weights=[0.3, 0.3], input_count=2, eta=1, bias=0))
+	first_layer.append(Perceptron(weights=[0.3, 0.3], input_count=2, eta=1, bias=0))
+	second_layer.append(Perceptron(weights=[0.8, 0.8], input_count=2, eta=1, bias=0))
+	layer_list = []
+	layer_list.append(PerceptronLayer(perceptron_list=first_layer, output_flag=False))
+	layer_list.append(PerceptronLayer(perceptron_list=second_layer, output_flag=True))
+	test_net = PerceptronNet(layer_list)
+	inputs1 = [1,2]
+	desired1 = [0.7]
+	logging.info(test_net.output_vector(inputs1)) # Should be [0.757223870792493]
+	logging.info(test_net.output_deltas(inputs1, desired1)) # Should be [-0.01051980066099822]
+	for x in range(10):
+		test_net.train(inputs1, desired1)
+	logging.info(test_net.output_vector(inputs1)) # Should be [0.723439394911163]
+
 
 if __name__ == '__main__':
 	first_layer = []
@@ -172,8 +191,8 @@ if __name__ == '__main__':
 	layer_list.append(PerceptronLayer(perceptron_list=first_layer, output_flag=False))
 	layer_list.append(PerceptronLayer(perceptron_list=second_layer, output_flag=True))
 	test_net = PerceptronNet(layer_list)
-	inputs1 = [1,1]
-	desired1 = [0.9]
+	inputs1 = [1,2]
+	desired1 = [0.7]
 	inputs2 = [-1,-1]
 	desired2 = [0.05]
 
@@ -181,12 +200,17 @@ if __name__ == '__main__':
 	for x in range(15):
 		test_net.train(inputs1, desired1)
 		test_net.train(inputs2, desired2)
-		test_net.output_vector(inputs1)
+		logging.info(test_net.output_vector(inputs1))
+		logging.info(test_net.output_vector(inputs2))
 	# Method 2
 	for x in range(15):
 		test_net.train(inputs1, desired1)
 	for x in range(15):
 		test_net.train(inputs2, desired2)
-	logging.info(test_net.output_vector(inputs1))
-	logging.info(test_net.output_deltas(inputs1, desired1))
-	logging.info(test_net.output_vector(inputs1))
+		logging.info(test_net.output_vector(inputs1))
+		logging.info(test_net.output_vector(inputs2))
+	# logging.info(test_net.output_vector(inputs1))
+	# logging.info(test_net.output_deltas(inputs1, desired1))
+	# for x in range(10):
+	# 	test_net.train(inputs1, desired1)
+	# logging.info(test_net.output_vector(inputs1))
