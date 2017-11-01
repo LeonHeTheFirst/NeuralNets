@@ -1,14 +1,10 @@
 from perceptron import Perceptron, PerceptronLayer, PerceptronNet
-import random, math, logging
-import numpy as np
+import math, logging
 
 # Logging Stuff
-loglevel = logging.DEBUG
-FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-logging.basicConfig(format=FORMAT, level=loglevel)
 logger = logging.getLogger(__name__)
 
-num_iterations = 15
+num_iterations = 100
 
 def method1():
 	first_layer = []

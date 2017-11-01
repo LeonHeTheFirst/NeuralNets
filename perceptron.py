@@ -3,7 +3,7 @@ import numpy as np
 
 # Logging Stuff
 loglevel = logging.INFO
-FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+FORMAT = '%(levelname)s - %(message)s'
 logging.basicConfig(format=FORMAT, level=loglevel)
 logger = logging.getLogger(__name__)
 
