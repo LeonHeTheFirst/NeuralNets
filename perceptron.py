@@ -45,7 +45,7 @@ class Perceptron():
 		self.weights = [w+self.eta*delta*i for i,w in zip(input_vector, self.weights)]
 		self.bias += self.eta * delta
 
-	# def train(self, input_vector, desired):
+	# def feed_forward_back_propagation(self, input_vector, desired):
 	# 	y = self.output(input_vector)
 	# 	delta = y*(1 - y)*(desired - y)
 	# 	self.update_weights(delta, input_vector)
@@ -144,7 +144,7 @@ class PerceptronNet():
 		output_vector = self.output_vector(input_vector)
 		return [y*(1 - y)*(desired - y) for y,desired in zip(output_vector, desired_output_vector)]
 
-	def train(self, input_vector, desired_output_vector):
+	def feed_forward_back_propagation(self, input_vector, desired_output_vector):
 		# First find the input vectors at each level
 		input_vectors = [[] for i in range(0, self.layer_count())]
 		input_vectors[0] = input_vector
@@ -164,10 +164,10 @@ class PerceptronNet():
 
 	def big_e(self, input_vector, desired_output_vector):
 		output_vector = self.output_vector(input_vector)
-		error_squared = 0
+		error_squared = []
 		for y,desired in zip(output_vector, desired_output_vector):
-			error_squared += (y - desired) * (y - desired)
-		return math.sqrt(error_squared)
+			error_squared.append(0.5 * (y - desired) * (y - desired))
+		return error_squared
 
 	def get_all_weights(self):
 		all_weights = []
@@ -191,7 +191,7 @@ def test_network():
 	logger.info(test_net.output_vector(inputs1)) # Should be [0.757223870792493]
 	logger.info(test_net.output_deltas(inputs1, desired1)) # Should be [-0.01051980066099822]
 	for x in range(10):
-		test_net.train(inputs1, desired1)
+		test_net.feed_forward_back_propagation(inputs1, desired1)
 	logger.info(test_net.output_vector(inputs1)) # Should be [0.723439394911163]
 
 
@@ -212,19 +212,19 @@ if __name__ == '__main__':
 
 	# Method 1
 	for x in range(15):
-		test_net.train(inputs1, desired1)
-		test_net.train(inputs2, desired2)
+		test_net.feed_forward_back_propagation(inputs1, desired1)
+		test_net.feed_forward_back_propagation(inputs2, desired2)
 		logger.info(test_net.output_vector(inputs1))
 		logger.info(test_net.output_vector(inputs2))
 	# Method 2
 	for x in range(15):
-		test_net.train(inputs1, desired1)
+		test_net.feed_forward_back_propagation(inputs1, desired1)
 	for x in range(15):
-		test_net.train(inputs2, desired2)
+		test_net.feed_forward_back_propagation(inputs2, desired2)
 		logger.info(test_net.output_vector(inputs1))
 		logger.info(test_net.output_vector(inputs2))
 	# logger.info(test_net.output_vector(inputs1))
 	# logger.info(test_net.output_deltas(inputs1, desired1))
 	# for x in range(10):
-	# 	test_net.train(inputs1, desired1)
+	# 	test_net.feed_forward_back_propagation(inputs1, desired1)
 	# logger.info(test_net.output_vector(inputs1))
